@@ -101,7 +101,9 @@ for i in range (0,19):
     
 
     print(str(answer))
+
 print()
+
 if counter>=1:
     print("The average time DepthLimitedSearch took was " + str(avTime/counter) + " seconds")
     print("The average number of nodes DepthLimitedSearch searched was " + str(avNodes/counter) + " nodes")
