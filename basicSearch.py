@@ -2,7 +2,7 @@
 
 
 
-import a1q2_UninformedSearch as BlindSearch
+import UninformedSearch as BlindSearch
 import Problem as P
 
 print()
