@@ -3,31 +3,41 @@
 
 import time as time
 import Frontier as Frontiers
-
+import math as m
 
 
 #########################################################################################
 class SearchNode(object):
+    """A data structure to store search information"""
 
-
-    def __init__(self, state, parent_node, step_cost=40):
+    def __init__(self, state, parent_node, step_cost, exp):
+        """A SearchNode stores
+             a single Problem state,
+             a parent node
+             the node's depth
+             the node's path cost
+        """
         self.state = state
         self.parent = parent_node
         if parent_node is None:
             self.path_cost = 0
             self.depth = 0
         else:
-            self.path_cost = parent_node.path_cost + step_cost
+            self.path_cost = m.pow(parent_node.path_cost,exp) + step_cost
             self.depth = parent_node.depth + 1
 
     def __str__(self):
+        """ Create and return a string representation of the object"""
         return '<{}> {} ({})'.format(str(self.depth), str(self.state), str(self.path_cost))
 
     def display_steps(self):
         def disp(node):
+            """ recursive function that displays actions
+            """
             if node.parent is not None:
                 disp(node.parent)
                 print(str(node.state.action))
+
         print("Solution:")
         disp(self)
 
@@ -35,6 +45,8 @@ class SearchNode(object):
 #########################################################################################
 class SearchTerminationRecord(object):
     """A record to return information about how the search turned out.
+       All the details are provided in a record, to avoid needing to print out the details
+       at different parts of the code.
     """
 
     def __init__(self, success=False, result=None, time=0, nodes=0, space=0, cutoff=False):
@@ -67,12 +79,13 @@ class Search(object):
         self._time_limit = timelimit
 
 
-    def _tree_search(self, initial_state):
+    def _tree_search(self, initial_state, ad, far, step, exp):
         """Search through the State space starting from an initial State.
         """
+
         start_time = time.time()
         now = start_time
-        self._frontier.add(SearchNode(initial_state, None))
+        self._frontier.add(SearchNode(initial_state, None, step, exp))
         node_counter = 0
         max_space = 0
 
@@ -89,11 +102,10 @@ class Search(object):
             else:
                 for act in self._problem.actions(this_node.state):
                     #print(act)
-                    child = self._problem.result(this_node.state, act)
+                    child = self._problem.result(this_node.state, act, ad, far)
                     #print(child)
-                    self._frontier.add(SearchNode(child, this_node))
+                    self._frontier.add(SearchNode(child, this_node, step, exp))
 
-        # didn't find a solution
         now = time.time()
         return SearchTerminationRecord(success=False, result=None,
                             nodes=node_counter, space=max_space, time=now - start_time)
@@ -101,8 +113,7 @@ class Search(object):
 
     def DepthFirstSearch(self, initial_state):
         """
-        Perform depth-first search of the problem,
-        starting at a given initial state.
+        Perform depth-first search of the problem
         """
         # configure search: for DFS, we want the Frotnier with the LIFO Stack
         self._frontier = Frontiers.FrontierLIFO()
@@ -114,6 +125,7 @@ class Search(object):
         """
         Perform breadth-first search of the problem,
         starting at a given initial state.
+
         """
         # configure search: for BFS, we want the Frontier with the FIFO Queue
         self._frontier = Frontiers.FrontierFIFO()
@@ -129,8 +141,9 @@ class Search(object):
         # configure search: We want the FIFO Frontier with the depth limit
         self._frontier = Frontiers.FrontierLIFO_DL(limit)
 
-        # run search
+
         result = self._tree_search(initial_state)
+
 
         result.cutoff = self._frontier._cutoff
         return result
@@ -158,3 +171,4 @@ class Search(object):
                 space = max(answer.space, space)
 
         return SearchTerminationRecord(success=False, result=None, nodes=nodes, space=space, time=time)
+
